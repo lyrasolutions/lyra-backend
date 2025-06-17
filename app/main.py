@@ -9,7 +9,10 @@ from passlib.context import CryptContext
 
 # Basic setup
 app = FastAPI()
-origins = ["*"]
+origins = [
+    "https://app.lyra.solutions",
+    "https://lyra-ui.pages.dev"
+]
 
 app.add_middleware(
     CORSMiddleware,
