@@ -7,8 +7,10 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-# Basic setup
+# App setup
 app = FastAPI()
+
+# CORS settings
 origins = [
     "https://app.lyra.solutions",
     "https://lyra-ui.pages.dev"
@@ -22,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# JWT configuration
+# JWT config
 SECRET_KEY = "secretkey123"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -31,7 +33,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# In-memory user store
+# In-memory user storage
 fake_users_db = {}
 
 # Schemas
@@ -50,7 +52,7 @@ class TokenData(BaseModel):
 class SummaryRequest(BaseModel):
     text: str
 
-# Utility functions
+# Utils
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -92,7 +94,11 @@ def register(user: User):
     if user.username in fake_users_db:
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed_pw = get_password_hash(user.password)
-    fake_users_db[user.username] = {"username": user.username, "email": user.email, "hashed_password": hashed_pw}
+    fake_users_db[user.username] = {
+        "username": user.username,
+        "email": user.email,
+        "hashed_password": hashed_pw
+    }
     return {"msg": "User registered"}
 
 @app.post("/auth/login", response_model=Token)
@@ -108,7 +114,6 @@ def dashboard(current_user: dict = Depends(get_current_user)):
     return {"msg": f"Welcome back, {current_user['username']}!"}
 
 @app.post("/ai/summarize")
-feat: added AI summarizer route
 def summarize_text(request: SummaryRequest, current_user: dict = Depends(get_current_user)):
     text = request.text.strip()
     summary = text[:150] + "..." if len(text) > 150 else text
