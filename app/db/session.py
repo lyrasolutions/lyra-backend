@@ -8,5 +8,5 @@ def get_session():
         yield session
 
 def init_db():
-    from app.db.models import User
+    from app.db.models import User, OnboardingProfile, GeneratedContent, ContentCalendar
     SQLModel.metadata.create_all(engine)
