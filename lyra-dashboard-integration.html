@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyra Dashboard Integration Example</title>
+    
+    <!-- Include the Lyra Dashboard CSS -->
+    <link rel="stylesheet" href="lyra-dashboard-styles.css">
+    
+    <style>
+        /* Example page styles - customize for your app */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .app-header {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .app-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .auth-section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 50px auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- App Header -->
+    <div class="app-header">
+        <div class="app-nav">
+            <div class="logo">🚀 Lyra</div>
+            <div class="user-info">
+                <span id="user-email"></span>
+                <button id="logout-btn" class="btn" style="width: auto; padding: 8px 16px; font-size: 14px;">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Section (shown when not logged in) -->
+    <div id="auth-section" class="auth-section">
+        <h2>Login to Your Dashboard</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        
+        <p style="margin-top: 20px; text-align: center; color: #6b7280;">
+            Don't have an account? <a href="#" id="register-link">Register here</a>
+        </p>
+    </div>
+
+    <!-- Enhanced Dashboard (shown when logged in) -->
+    <div id="dashboard-container" class="dashboard-container hidden">
+        <div class="dashboard-header">
+            <h1>📊 Your Enhanced Dashboard</h1>
+            <p>Real-time content management for your AI-powered marketing campaigns</p>
+        </div>
+
+        <!-- Enhanced Dashboard Widgets -->
+        <div class="dashboard-widgets">
+            <div class="widget">
+                <h3>📈 Content Performance</h3>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <span class="number" id="total-content">0</span>
+                        <span class="label">Total Generated</span>
+                    </div>
+                    <div class="stat">
+                        <span class="number" id="this-week">0</span>
+                        <span class="label">This Week</span>
+                    </div>
+                    <div class="stat">
+                        <span class="number" id="approved-content">0</span>
+                        <span class="label">Approved</span>
+                    </div>
+                    <div class="stat">
+                        <span class="number" id="approval-rate">0%</span>
+                        <span class="label">Approval Rate</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="widget">
+                <h3>⚡ Quick Actions</h3>
+                <button id="quick-generate-btn" class="action-btn primary">
+                    🚀 Generate New Content
+                </button>
+                <button id="pending-approvals-btn" class="action-btn secondary">
+                    📋 Pending Approvals (<span id="pending-count">0</span>)
+                </button>
+                <div class="quick-stats">
+                    <p>🎯 Active Platforms: <strong><span id="platforms-active">0</span></strong></p>
+                    <p>📅 Scheduled Today: <strong>0 posts</strong></p>
+                    <p>🔥 Engagement Rate: <strong>0%</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Ticker -->
+        <div class="calendar-ticker-container">
+            <h3>📅 Upcoming Content Schedule</h3>
+            <div id="calendar-ticker" class="ticker-scroll">
+                <div class="loading">Loading upcoming posts...</div>
+            </div>
+        </div>
+
+        <!-- Upcoming Posts Preview -->
+        <div class="widget">
+            <h3>🔮 Upcoming Posts Preview</h3>
+            <div id="upcoming-posts">
+                <div class="loading">Loading upcoming posts...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Approvals Modal -->
+    <div id="pending-approvals-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Content Awaiting Your Approval</h3>
+                <button class="notification-close">&times;</button>
+            </div>
+            <div class="approvals-list">
+                <!-- Pending approvals will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the Lyra Dashboard JavaScript -->
+    <script src="lyra-frontend-integration.js"></script>
+    
+    <script>
+        // Example integration code for your existing app
+        class LyraApp {
+            constructor() {
+                this.currentUser = null;
+                this.setupEventHandlers();
+                this.checkAuthStatus();
+            }
+
+            setupEventHandlers() {
+                // Login form
+                document.getElementById('login-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+
+                // Logout button
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    this.handleLogout();
+                });
+
+                // Register link
+                document.getElementById('register-link').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showRegisterForm();
+                });
+            }
+
+            async handleLogin() {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    // Update this URL to your deployed backend
+                    const API_BASE = 'https://your-backend-url.railway.app'; // Replace with your deployed backend URL
+                    
+                    const formData = new FormData();
+                    formData.append('username', email);
+                    formData.append('password', password);
+
+                    const response = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Store auth token
+                        localStorage.setItem('authToken', data.access_token);
+                        localStorage.setItem('userEmail', email);
+                        
+                        // Update UI
+                        this.showDashboard();
+                        
+                        // Initialize enhanced dashboard
+                        LyraDashboard.instance.API_BASE = API_BASE;
+                        await LyraDashboard.instance.init(data.access_token);
+                        
+                    } else {
+                        alert('Login failed. Please check your credentials.');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('Login failed. Please try again.');
+                }
+            }
+
+            handleLogout() {
+                // Clear auth data
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userEmail');
+                
+                // Cleanup dashboard
+                LyraDashboard.instance.destroy();
+                
+                // Show auth section
+                this.showAuthSection();
+            }
+
+            checkAuthStatus() {
+                const authToken = localStorage.getItem('authToken');
+                const userEmail = localStorage.getItem('userEmail');
+                
+                if (authToken && userEmail) {
+                    this.showDashboard();
+                    
+                    // Initialize enhanced dashboard with your backend URL
+                    LyraDashboard.instance.API_BASE = 'https://your-backend-url.railway.app'; // Update this
+                    LyraDashboard.instance.init(authToken);
+                } else {
+                    this.showAuthSection();
+                }
+            }
+
+            showDashboard() {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard-container').classList.remove('hidden');
+                document.getElementById('user-email').textContent = localStorage.getItem('userEmail');
+            }
+
+            showAuthSection() {
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.getElementById('dashboard-container').classList.add('hidden');
+                document.getElementById('user-email').textContent = '';
+            }
+
+            showRegisterForm() {
+                alert('Registration form would be implemented here. For demo purposes, use the existing login.');
+            }
+        }
+
+        // Initialize the app
+        const app = new LyraApp();
+    </script>
+</body>
+</html>
