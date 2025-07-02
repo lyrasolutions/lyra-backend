@@ -7,8 +7,13 @@
 # Get your OpenAI API key from https://platform.openai.com/api-keys
 export OPENAI_API_KEY="sk-your-actual-openai-key-here"
 
-# Add to your .env file
+# For local development, add to your .env file (DO NOT commit this file)
 echo "OPENAI_API_KEY=sk-your-actual-openai-key-here" >> .env
+
+# For production deployment, set as environment variable:
+# Railway: railway variables set OPENAI_API_KEY=sk-your-key-here
+# Fly.io: fly secrets set OPENAI_API_KEY=sk-your-key-here
+# Cloudflare: wrangler secret put OPENAI_API_KEY
 ```
 
 ### Step 2: Deploy Backend to Production (10 minutes)
