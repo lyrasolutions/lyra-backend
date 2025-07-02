@@ -15,7 +15,10 @@ origins = [
     "http://localhost:8080", 
     "https://app.lyra.solutions",
     "https://lyra-ui.pages.dev",
-    "https://lyra.solutions"
+    "https://lyra.solutions",
+    "https://code-efficiency-reporter-1xbciqqv.devinapps.com",
+    "https://code-efficiency-reporter-pghs32ww.devinapps.com",
+    "https://code-efficiency-reporter-pvodt1dx.devinapps.com"
 ]
 
 app.add_middleware(
