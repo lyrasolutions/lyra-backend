@@ -11,8 +11,11 @@ from app.db.session import init_db
 app = FastAPI(title="Lyra Backend API", description="Backend for Lyra.solutions SaaS Platform")
 
 origins = [
+    "http://localhost:3000",
+    "http://localhost:8080", 
     "https://app.lyra.solutions",
-    "https://lyra-ui.pages.dev"
+    "https://lyra-ui.pages.dev",
+    "https://lyra.solutions"
 ]
 
 app.add_middleware(
@@ -38,7 +41,16 @@ class SummaryRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Lyra Backend API", "version": "1.0.0"}
+    return {
+        "message": "Lyra Backend API", 
+        "version": "1.0.0",
+        "status": "MVP Ready",
+        "features": ["Authentication", "Onboarding", "AI Content Generation", "Dashboard", "Automation"]
+    }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "version": "1.0.0", "timestamp": "2025-07-02T07:23:58Z"}
 
 @app.post("/ai/summarize")
 def summarize_text(request: SummaryRequest, current_user: dict = Depends(get_current_user)):
