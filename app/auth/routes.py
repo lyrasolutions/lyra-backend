@@ -24,12 +24,18 @@ def register(user: UserCreate, session: Session = Depends(get_session)):
     existing_user = session.exec(select(User).where(User.username == user.username)).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already registered")
+    
+    if user.email:
+        existing_email = session.exec(select(User).where(User.email == user.email)).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+    
     hashed_password = pwd_context.hash(user.password)
-    db_user = User(username=user.username, hashed_password=hashed_password)
+    db_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
-    return {"message": "User registered successfully"}
+    return {"message": "User registered successfully", "user_id": db_user.id}
 
 @auth_router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):

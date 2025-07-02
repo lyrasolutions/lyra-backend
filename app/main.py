@@ -3,8 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.auth.routes import auth_router
 from app.dashboard.routes import dashboard_router, get_current_user
+from app.onboarding.routes import onboarding_router
+from app.ai.routes import ai_router
+from app.automation.routes import automation_router
+from app.db.session import init_db
 
-app = FastAPI(title="Lyra Backend API", description="Backend for Lyra.solutions MVP")
+app = FastAPI(title="Lyra Backend API", description="Backend for Lyra.solutions SaaS Platform")
 
 origins = [
     "https://app.lyra.solutions",
@@ -21,6 +25,13 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(onboarding_router, prefix="/onboarding", tags=["onboarding"])
+app.include_router(ai_router, prefix="/ai", tags=["ai"])
+app.include_router(automation_router, prefix="/automation", tags=["automation"])
+
+@app.on_event("startup")
+def startup_event():
+    init_db()
 
 class SummaryRequest(BaseModel):
     text: str
