@@ -18,7 +18,8 @@ origins = [
     "https://lyra.solutions",
     "https://code-efficiency-reporter-1xbciqqv.devinapps.com",
     "https://code-efficiency-reporter-pghs32ww.devinapps.com",
-    "https://code-efficiency-reporter-pvodt1dx.devinapps.com"
+    "https://code-efficiency-reporter-pvodt1dx.devinapps.com",
+    "https://lyra-backend-production.up.railway.app"
 ]
 
 app.add_middleware(
