@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 from app.db.session import get_session
-from app.db.models import User, OnboardingProfile, ContentCalendar, GeneratedContent
+from app.db.models import User, OnboardingProfile, ContentCalendar, GeneratedContent, SocialMediaAccount
 from app.dashboard.routes import get_current_user
 from typing import Dict
 import json
@@ -156,13 +156,29 @@ def get_user_workflows(
         )
     ).all()
     
+    connected_accounts = session.exec(
+        select(SocialMediaAccount).where(
+            SocialMediaAccount.user_id == user.id,
+            SocialMediaAccount.is_active == True
+        )
+    ).all()
+    
     return {
         "workflows": {
             "scheduled_posts": len(scheduled_posts),
             "published_posts": len(published_posts),
             "failed_posts": len(failed_posts),
-            "active_workflows": len([p for p in scheduled_posts if p.n8n_workflow_id])
+            "active_workflows": len([p for p in scheduled_posts if p.n8n_workflow_id]),
+            "connected_platforms": len(connected_accounts)
         },
+        "connected_platforms": [
+            {
+                "platform": account.platform.value,
+                "username": account.platform_username,
+                "connected_at": account.created_at.isoformat()
+            }
+            for account in connected_accounts
+        ],
         "recent_executions": [
             {
                 "id": entry.id,
@@ -175,4 +191,38 @@ def get_user_workflows(
             }
             for entry in (scheduled_posts + published_posts + failed_posts)[-10:]
         ]
+    }
+
+@automation_router.post("/webhook/oauth-connected")
+async def oauth_connected_webhook(
+    request: Request,
+    session: Session = Depends(get_session)
+):
+    """Webhook triggered when user connects a social media account via OAuth"""
+    
+    body = await request.json()
+    user_id = body.get("user_id")
+    platform = body.get("platform")
+    username = body.get("username")
+    
+    if not all([user_id, platform, username]):
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    user = session.exec(select(User).where(User.id == user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    webhook_data = {
+        "event": "oauth_connected",
+        "user_id": user_id,
+        "username": user.username,
+        "platform": platform,
+        "platform_username": username,
+        "connected_at": body.get("connected_at")
+    }
+    
+    return {
+        "message": "OAuth connection webhook processed",
+        "webhook_data": webhook_data,
+        "next_action": "enable_auto_posting"
     }

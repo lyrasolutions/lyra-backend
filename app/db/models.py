@@ -29,6 +29,7 @@ class User(SQLModel, table=True):
     onboarding_profile: Optional["OnboardingProfile"] = Relationship(back_populates="user")
     generated_content: List["GeneratedContent"] = Relationship(back_populates="user")
     content_calendar: List["ContentCalendar"] = Relationship(back_populates="user")
+    social_accounts: List["SocialMediaAccount"] = Relationship(back_populates="user")
 
 class OnboardingProfile(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -93,3 +94,18 @@ class ContentCalendar(SQLModel, table=True):
     
     user: User = Relationship(back_populates="content_calendar")
     content: GeneratedContent = Relationship(back_populates="calendar_entries")
+
+class SocialMediaAccount(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    platform: Platform
+    platform_user_id: str
+    platform_username: str
+    access_token: str
+    refresh_token: Optional[str] = Field(default=None)
+    token_expires_at: Optional[datetime] = Field(default=None)
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    user: User = Relationship(back_populates="social_accounts")
