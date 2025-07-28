@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 # App setup
-app = FastAPI()
+app = FastAPI(title="Lyra Backend API", description="MVP backend for Lyra.solutions")
 
 # CORS settings
 origins = [
