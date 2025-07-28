@@ -6,6 +6,8 @@ from typing import Optional
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+import openai
+import os
 
 # App setup
 app = FastAPI()
@@ -28,6 +30,8 @@ app.add_middleware(
 SECRET_KEY = "secretkey123"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -114,7 +118,26 @@ def dashboard(current_user: dict = Depends(get_current_user)):
     return {"msg": f"Welcome back, {current_user['username']}!"}
 
 @app.post("/ai/summarize")
-def summarize_text(request: SummaryRequest, current_user: dict = Depends(get_current_user)):
-    text = request.text.strip()
-    summary = text[:150] + "..." if len(text) > 150 else text
-    return {"summary": f"Summary: {summary}"}
+async def summarize_text(request: SummaryRequest, current_user: dict = Depends(get_current_user)):
+    try:
+        text = request.text.strip()
+        if not text:
+            raise HTTPException(status_code=400, detail="Text cannot be empty")
+        
+        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that creates concise summaries of text."},
+                {"role": "user", "content": f"Please summarize the following text in 2-3 sentences:\n\n{text}"}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        
+        summary = response.choices[0].message.content.strip()
+        return {"summary": summary, "user": current_user["username"]}
+        
+    except Exception as e:
+        fallback_summary = text[:150] + "..." if len(text) > 150 else text
+        return {"summary": f"Summary: {fallback_summary}", "user": current_user["username"], "note": "Using fallback summarization"}
